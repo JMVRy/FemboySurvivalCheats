@@ -138,6 +138,9 @@ namespace FemboySurvivalCheats
             }
         }
 
+        /// <summary>
+        /// Kills any enemy that has spawned in
+        /// </summary>
         private void KillAllEnemies()
         {
             Enemy[] enemies = FindObjectsOfType<Enemy>();
@@ -150,6 +153,9 @@ namespace FemboySurvivalCheats
             }
         }
 
+        /// <summary>
+        /// Ends any event started by the GrabManager or the CorruptionManager
+        /// </summary>
         private void EndEvents()
         {
             GrabManager grabManager = Player.instance.GetComponent<GrabManager>();
@@ -161,12 +167,18 @@ namespace FemboySurvivalCheats
                 Traverse.Create( corruptionManager ).Method( "EndEvent" ).GetValue();
         }
 
+        /// <summary>
+        /// Sets the player's health to max
+        /// </summary>
         private void MaxPlayerHealth()
         {
             PlayerHealth playerHealth = Player.instance.GetComponent<PlayerHealth>();
             playerHealth.SetHealth( playerHealth.GetMaxHealth() );
         }
 
+        /// <summary>
+        /// Sets the countdown between waves to max
+        /// </summary>
         private void MaxWaveCountdown()
         {
             Logger.LogInfo( "Changing wave countdown to float.PositiveInfinity" );
@@ -178,6 +190,9 @@ namespace FemboySurvivalCheats
             Logger.LogInfo( $"Set countdown to: {instanceCountdown.Value}!" );
         }
 
+        /// <summary>
+        /// Levels up the player's normal stats
+        /// </summary>
         private void LevelUpNormal()
         {
             PlayerProgression progression = Player.instance.GetComponent<PlayerProgression>();
@@ -185,6 +200,9 @@ namespace FemboySurvivalCheats
             Traverse.Create( progression ).Method( "LevelUp" ).GetValue();
         }
 
+        /// <summary>
+        /// Levels up the player's sexual stats
+        /// </summary>
         private void LevelUpSex()
         {
             PlayerProgression progression = Player.instance.GetComponent<PlayerProgression>();
@@ -192,6 +210,9 @@ namespace FemboySurvivalCheats
             Traverse.Create( progression ).Method( "SexLevelUp" ).GetValue();
         }
 
+        /// <summary>
+        /// Removes any status effect currently afflicting the player
+        /// </summary>
         private void RemoveAllStatusEffects()
         {
             StatusEffectsManager manager = StatusEffectsManager.instance;
@@ -204,12 +225,19 @@ namespace FemboySurvivalCheats
             }
         }
 
+        /// <summary>
+        /// Adds any amount of gold to the player's inventory
+        /// </summary>
+        /// <param name="amount">The amount of gold to add</param>
         private void AddGold( int amount )
         {
             Inventory.instance.AddGold( amount );
         }
     }
 
+    /// <summary>
+    /// Patches the collision between Aqua and the player, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Aqua ), "OnCollisionEnter2D" )]
     class AquaCollisionPatch
     {
@@ -243,6 +271,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches Aqua's grab, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Aqua_Chasing ), nameof( Aqua_Chasing.Grab ) )]
     class AquaChasingGrabPatch
     {
@@ -260,6 +291,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the collision between Betty and the player, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Betty ), "OnCollisionEnter2D" )]
     class BettyCollisionPatch
     {
@@ -293,6 +327,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches Betty's grab, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Betty_Running ), nameof( Betty_Running.Grab ) )]
     class BettyRunningGrabPatch
     {
@@ -316,6 +353,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Adds a log to the CorruptionManager, so that it displays the name of the corruption event when it starts
+    /// </summary>
     [HarmonyPatch( typeof( CorruptionManager ), nameof( CorruptionManager.StartEvent ) )]
     class CorruptionManagerStartEventPatch
     {
@@ -327,6 +367,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the CorruptionManager, because triggers are used by Aqua's puddles
+    /// </summary>
     [HarmonyPatch( typeof( CorruptionManager ), "OnTriggerEnter2D" )]
     class CorruptionManagerTriggerPatch
     {
@@ -347,6 +390,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches Evelyn's grab, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Evelyn_WalkToGrab ), nameof( Evelyn_WalkToGrab.Grab ) )]
     class EvelynWalkToGrabPatch
     {
@@ -368,6 +414,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches any explosion (fireball) so that the player won't be hurt if they're invulnerable, and won't be affected if intangible
+    /// </summary>
     [HarmonyPatch( typeof( Explosion ), nameof( Explosion.Explode ) )]
     class ExplosionExplodePatch
     {
@@ -444,6 +493,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Adds a log to GrabManager, so that it displays the name of the enemy raping the player
+    /// </summary>
     [HarmonyPatch( typeof( GrabManager ), nameof( GrabManager.StartRape ) )]
     [HarmonyPatch( [ typeof( Enemy ), typeof( Animator ) ] )]
     class GrabManagerStartRapePatch
@@ -456,6 +508,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the collision between Betty's lace and the player, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Lace ), "OnCollisionEnter2D" )]
     class LaceCollisionPatch
     {
@@ -476,6 +531,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the collision between Maeve and the player, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Maeve_Grab ), nameof( Maeve_Grab.Grab ) )]
     class MaeveGrabPatch
     {
@@ -493,6 +551,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the collision between any Mimic and the player, so that it won't grab the player if they're intangible
+    /// </summary>
     [HarmonyPatch( typeof( Mimic ), nameof( Mimic.Grab ) )]
     class MimicGrabPatch
     {
@@ -508,7 +569,10 @@ namespace FemboySurvivalCheats
             return false;
         }
     }
-    
+
+    /// <summary>
+    /// Patches the collision between Morgana and the player, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Morgana_Running ) )]
     [HarmonyPatch( nameof( Morgana_Running.Grab ) )]
     class MorganaRunningGrabPatch
@@ -527,6 +591,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the PlayerLewd class, so that the player can always masturbate if the variable is set
+    /// </summary>
     [HarmonyPatch( typeof( PlayerLewd ), nameof( PlayerLewd.CanMasturbate ) )]
     class PlayerLewdCanMasturbatePatch
     {
@@ -545,6 +612,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the collision between the Vines and the player, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Vines ), "OnCollisionEnter2D" )]
     class VinesCollisionPatch
     {
@@ -562,6 +632,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the collision between the Whip and the player, so that it won't activate if the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( Whip ), "OnCollisionEnter2D" )]
     class WhipCollisionPatch
     {
