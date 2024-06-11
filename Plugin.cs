@@ -1,5 +1,6 @@
 ﻿using BepInEx;
 using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FemboySurvivalCheats
@@ -12,6 +13,8 @@ namespace FemboySurvivalCheats
         public static bool playerIntangible = false;
         public static bool alwaysCanMasturbate = false;
         public static bool menuOpen = true;
+
+        public static bool forceGalleryUnlock = true;
 
         private void Awake()
         {
@@ -42,6 +45,11 @@ namespace FemboySurvivalCheats
             if ( Input.GetKeyDown( KeyCode.V ) )
             {
                 alwaysCanMasturbate = !alwaysCanMasturbate;
+            }
+
+            if ( Input.GetKeyDown( KeyCode.LeftBracket ) )
+            {
+                forceGalleryUnlock = !forceGalleryUnlock;
             }
 
             if ( Input.GetKeyDown( KeyCode.K ) )
@@ -84,7 +92,7 @@ namespace FemboySurvivalCheats
         {
             if ( menuOpen )
             {
-                GUI.Box( new Rect( 10, 10, 170, 300 ), "Cheats" );
+                GUI.Box( new Rect( 10, 10, 170, 325 ), "Cheats" );
 
                 GUI.Label( new( 20, 25, 170, 20 ), "Toggle menu with F1" );
 
@@ -94,44 +102,46 @@ namespace FemboySurvivalCheats
 
                 alwaysCanMasturbate = GUI.Toggle( new( 20, 80, 150, 20 ), alwaysCanMasturbate, "Always can masturbate" );
 
-                if ( GUI.Button( new( 20, 105, 150, 20 ), "Infinite Wave Time" ) )
+                forceGalleryUnlock = GUI.Toggle( new( 20, 100, 150, 20 ), forceGalleryUnlock, "Unlock gallery" );
+
+                if ( GUI.Button( new( 20, 130, 150, 20 ), "Infinite Wave Time" ) )
                 {
                     this.MaxWaveCountdown();
                 }
 
-                if ( GUI.Button( new( 20, 130, 150, 20 ), "Kill all enemies" ) )
+                if ( GUI.Button( new( 20, 155, 150, 20 ), "Kill all enemies" ) )
                 {
                     this.KillAllEnemies();
                 }
 
-                if ( GUI.Button( new( 20, 155, 150, 20 ), "Max health" ) )
+                if ( GUI.Button( new( 20, 180, 150, 20 ), "Max health" ) )
                 {
                     this.MaxPlayerHealth();
                 }
 
-                if ( GUI.Button( new( 20, 180, 150, 20 ), "Level Up!" ) )
+                if ( GUI.Button( new( 20, 205, 150, 20 ), "Level Up!" ) )
                 {
                     this.LevelUpNormal();
                 }
 
-                if ( GUI.Button( new( 20, 205, 150, 20 ), "Slut Level Up!" ) )
+                if ( GUI.Button( new( 20, 230, 150, 20 ), "Slut Level Up!" ) )
                 {
                     this.LevelUpSex();
                 }
 
-                if ( GUI.Button( new( 20, 230, 150, 20 ), "Remove status effects" ) )
+                if ( GUI.Button( new( 20, 255, 150, 20 ), "Remove status effects" ) )
                 {
                     this.RemoveAllStatusEffects();
                 }
 
-                if ( GUI.Button( new( 20, 255, 150, 20 ), "End current event" ) )
+                if ( GUI.Button( new( 20, 280, 150, 20 ), "End current event" ) )
                 {
                     this.EndEvents();
                 }
 
-                string goldAmount = GUI.TextField( new( 20, 280, 65, 20 ), "1000", 6 );
+                string goldAmount = GUI.TextField( new( 20, 305, 65, 20 ), "1000", 6 );
                 
-                if ( GUI.Button( new( 90, 280, 80, 20 ), "Add gold" ) )
+                if ( GUI.Button( new( 90, 305, 80, 20 ), "Add gold" ) )
                 {
                     this.AddGold( int.Parse( goldAmount ) );
                 }
@@ -488,6 +498,20 @@ namespace FemboySurvivalCheats
                     component6.AddForce( vector3, ForceMode2D.Impulse );
                 }
             }
+
+            return false;
+        }
+    }
+
+    [HarmonyPatch( typeof( GalleryTracker ), nameof( GalleryTracker.IsUnlocked ) )]
+    class GalleryTrackerUnlockedPatch
+    {
+        static bool Prefix( string sceneName, ref bool __result, List<string> ___seenScenes )
+        {
+            if ( Plugin.forceGalleryUnlock )
+                __result = true;
+            else
+                __result = ___seenScenes.Contains( sceneName );
 
             return false;
         }
