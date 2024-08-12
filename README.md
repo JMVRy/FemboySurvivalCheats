@@ -1,5 +1,5 @@
 # FemboySurvivalCheats
- A simple BepInEx cheat plugin for [Femboy Survival](https://niemand2d.itch.io/femboy-survival) by [2DNiem](https://www.patreon.com/2dniem). The cheat is only guarenteed to work for Demo 7, so if it doesn't work on any other demo, let me know and I might try to fix it. [You can also try to fix it yourself](https://github.com/JMVRy/FemboySurvivalCheats/pulls) 😏😏😏
+ A simple BepInEx cheat plugin for [Femboy Survival](https://niemand2d.itch.io/femboy-survival) by [2DNiem](https://www.patreon.com/2dniem). The cheat is only guarenteed to work for Demo 7, 8, and 10, so if it doesn't work on any other demo, let me know and I might try to fix it. [You can also try to fix it yourself](https://github.com/JMVRy/FemboySurvivalCheats/pulls) 😏😏😏
 
 # Installation
  Download the zip file from the [Releases section](https://github.com/JMVRy/FemboySurvivalCheats/releases) and unzip it into the game's directory (should contain "Femboy Survival.exe")
