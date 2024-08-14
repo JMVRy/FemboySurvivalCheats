@@ -563,6 +563,24 @@ namespace FemboySurvivalCheats
         }
     }
 
+    [HarmonyPatch( typeof( GrabAttack ), nameof( GrabAttack.ApplyStartingDevices ) )]
+    class GrabAttackStartDevicePatch
+    {
+        static bool Prefix()
+        {
+            return !Plugin.denyToys;
+        }
+    }
+
+    [HarmonyPatch( typeof( GrabAttack ), nameof( GrabAttack.ApplyEndDevices ) )]
+    class GrabAttackEndDevicePatch
+    {
+        static bool Prefix()
+        {
+            return !Plugin.denyToys;
+        }
+    }
+
     /// <summary>
     /// Adds a log to GrabManager, so that it displays the name of the enemy raping the player
     /// </summary>
