@@ -93,7 +93,7 @@ namespace FemboySurvivalCheats
         {
             if ( menuOpen )
             {
-                GUI.Box( new Rect( 10, 10, 170, 345 ), "Cheats" );
+                GUI.Box( new Rect( 10, 10, 170, 370 ), "Cheats" );
 
                 GUI.Label( new( 20, 25, 170, 20 ), "Toggle menu with F1" );
 
@@ -147,6 +147,12 @@ namespace FemboySurvivalCheats
                 if ( GUI.Button( new( 90, 325, 80, 20 ), "Add gold" ) )
                 {
                     this.AddGold( int.Parse( goldAmount ) );
+                }
+                
+                if ( GUI.Button( new( 20, 350, 150, 20 ), "Remove toys" ) )
+                {
+                    //Logger.LogInfo( "Why aren't you running???" );
+                    this.RemoveDeviousDevices();
                 }
             }
         }
@@ -247,6 +253,25 @@ namespace FemboySurvivalCheats
         private void AddGold( int amount )
         {
             Inventory.instance.AddGold( amount );
+        }
+        
+        /// <summary>
+        /// Removes any devices equipped to the player's Toy slot, named "devious device" in the game's code
+        /// </summary>
+        private void RemoveDeviousDevices()
+        {
+            Equipment toy = EquipmentManager.instance.currentEquipment[ ( int )Equipment.EquipmentSlot.Toy ];
+
+            EquipmentManager.instance.UnlockDevices();
+
+            Logger.LogInfo( $"Equipment count: {EquipmentManager.instance.currentEquipment.Length}" );
+            
+            foreach ( var equip in EquipmentManager.instance.currentEquipment )
+            {
+                Logger.LogInfo( $"Equipment: {equip.name}, slot: {equip.equipSlot}, locked: {equip.locked}" );
+            }
+            
+            toy?.RemoveFromInventory();
         }
     }
 
@@ -585,7 +610,7 @@ namespace FemboySurvivalCheats
     /// Adds a log to GrabManager, so that it displays the name of the enemy raping the player
     /// </summary>
     [HarmonyPatch( typeof( GrabManager ), nameof( GrabManager.StartRape ) )]
-    [HarmonyPatch( [ typeof( Enemy ) ] )]
+    [HarmonyPatch( new System.Type[] { typeof( Enemy ) } )]
     class GrabManagerStartRapePatch
     {
         static bool Prefix( Enemy e )
