@@ -1,5 +1,5 @@
 # FemboySurvivalCheats
- A simple BepInEx cheat plugin for [Femboy Survival](https://niemand2d.itch.io/femboy-survival) by [2DNiem](https://www.patreon.com/2dniem). The cheat is only guarenteed to work for Demo 7, so if it doesn't work on any other demo, let me know and I might try to fix it. [You can also try to fix it yourself](https://github.com/JMVRy/FemboySurvivalCheats/pulls) 😏😏😏
+ A simple BepInEx cheat plugin for [Femboy Survival](https://niemand2d.itch.io/femboy-survival) by [2DNiem](https://www.patreon.com/2dniem). The cheat is only guarenteed to work for Demos 7 through 15, so if it doesn't work on any other demo, [let me know](https://github.com/JMVRy/FemboySurvivalCheats/issues) and I might try to fix it. [You can also try to fix it yourself](https://github.com/JMVRy/FemboySurvivalCheats/pulls) 😏😏😏
 
 # Installation
  Download the zip file from the [Releases section](https://github.com/JMVRy/FemboySurvivalCheats/releases) and unzip it into the game's directory (should contain "Femboy Survival.exe")
@@ -26,4 +26,6 @@
  * `UnityEngine.CoreModule.dll`
  * `UnityEngine.dll`
  
- If you don't want to copy the files to the directory, you can also [change the Assembly reference](https://learn.microsoft.com/en-us/visualstudio/ide/managing-references-in-a-project) for the project, but that may have unusual consequences, so beware. 
+ If you don't want to copy the files to the directory, you can also [change the Assembly reference](https://learn.microsoft.com/en-us/visualstudio/ide/managing-references-in-a-project) for the project, but that may have unusual consequences, so beware.
+
+ After that step, the .NET compiler (VS2022, dotnet, Mono, etc.) should be able to build this project like normal. All you'd need to do afterward is [download a compatible BepInEx version](https://builds.bepinex.dev/projects/bepinex_be), extract BepInEx into the game directory (the one where `Femboy Survival.exe` is located), and put the `FemboySurvivalCheats.dll` into the `BepInEx/plugins` directory.
