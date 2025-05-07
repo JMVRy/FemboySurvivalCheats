@@ -18,7 +18,10 @@ namespace FemboySurvivalCheats
 
         public static bool noclip = false;
 
-#pragma warning disable IDE0051
+#pragma warning disable IDE0051 // Private methods not accessed (it's a Unity thing)
+        /// <summary>
+        /// Called once loaded
+        /// </summary>
         private void Awake()
         {
             // Plugin startup logic
@@ -28,6 +31,9 @@ namespace FemboySurvivalCheats
             harmony.PatchAll();
         }
 
+        /// <summary>
+        /// Called once per frame
+        /// </summary>
         private void Update()
         {
             if ( Input.GetKeyDown( KeyCode.O ) )
@@ -106,6 +112,9 @@ namespace FemboySurvivalCheats
             }
         }
 
+        /// <summary>
+        /// Called for rendering and handling GUI events
+        /// </summary>
         private void OnGUI()
 #pragma warning restore IDE0051
         {
@@ -174,15 +183,6 @@ namespace FemboySurvivalCheats
         /// </summary>
         private void KillAllEnemies()
         {
-            /*Boss[] bosses = FindObjectsOfType<Boss>();
-
-            foreach ( var boss in bosses )
-            {
-                Logger.LogInfo( $"Satisfying boss \"{boss.name}\"");
-
-                boss.SatisfyBoss();
-            }*/
-
             Enemy[] enemies = FindObjectsOfType<Enemy>();
 
             foreach ( var enemy in enemies )
@@ -260,7 +260,7 @@ namespace FemboySurvivalCheats
         {
             StatusEffectsManager manager = StatusEffectsManager.instance;
 
-            System.Collections.Generic.List<StatusEffect> effects = manager.GetActiveEffects();
+            List<StatusEffect> effects = manager.GetActiveEffects();
 
             effects.Clear();
 
@@ -277,10 +277,13 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the trigger between any AoE effect, so that it won't affect the player if intangible
+    /// </summary>
     [HarmonyPatch( typeof( AreaEffect ), "OnTriggerEnter2D" )]
     class AoETriggerPatch
     {
-        static bool Prefix( Collider2D other, bool ___affectsPlayer)
+        static bool Prefix( Collider2D other )
         {
             // Player: StatusEffectsManager
             // Enemy: EnemyStatusEffects
@@ -297,29 +300,31 @@ namespace FemboySurvivalCheats
     [HarmonyPatch( typeof( Aqua ), "OnCollisionEnter2D" )]
     class AquaCollisionPatch
     {
-        static bool Prefix( Collision2D collision, ref bool ___doHit, int ___hitDamage, Rigidbody2D ___rb, float ___hitPushTweak, float ___hitStunDuration, EntityAudioPlayer ___audioPlayer, AudioClip ___hitSound, float ___hitVolume )
+        static bool Prefix( Collision2D collision, ref bool ___doHit, int ___hitDamage, Rigidbody2D ___rb, float ___hitPushTweak, float ___hitStunDuration, AquasVoice ___voice, EntityAudioPlayer ___audioPlayer, AudioClip ___hitSound, float ___hitVolume )
         {
             if ( Plugin.playerIntangible ) return false;
 
-            Debug.Log( "(Aqua) Collided with " + collision.gameObject.name );
             if ( ___doHit )
             {
-                Player component = collision.gameObject.GetComponent<Player>();
-                if ( component != null )
+                Player player = collision.gameObject.GetComponent<Player>();
+                if ( player != null )
                 {
-                    PlayerHealth component2 = component.GetComponent<PlayerHealth>();
-                    Rigidbody2D component3 = component.GetComponent<Rigidbody2D>();
                     if ( !Plugin.playerInvulnerable )
                     {
-                        component2?.Damage( ___hitDamage, Health.DamageType.Physical );
+                        PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+
+                        playerHealth?.Damage( ___hitDamage, Health.DamageType.Physical );
+
+                        player.ApplyStun( ___hitStunDuration );
                     }
-                    if ( component3 != null )
-                    {
-                        Vector2 vector = ___rb.velocity;
-                        vector *= ___hitPushTweak;
-                        component3.AddForce( vector, ForceMode2D.Impulse );
-                    }
-                    component.ApplyStun( ___hitStunDuration );
+                    
+                    Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+                    
+                    Vector2 aquaVelocity = ___rb.velocity;
+                    aquaVelocity *= ___hitPushTweak;
+                    playerRb.AddForce( aquaVelocity, ForceMode2D.Impulse );
+
+                    ___voice.VoiceDashHit();
                     ___audioPlayer.PlayAudioAfterDestruction( ___hitSound, ___hitVolume );
                     ___doHit = false;
                 }
@@ -351,25 +356,26 @@ namespace FemboySurvivalCheats
         {
             if ( Plugin.playerIntangible ) return false; 
 
-            Debug.Log( "(Betty) Collided with " + collision.gameObject.name );
             if ( ___doPunch )
             {
-                Player component = collision.gameObject.GetComponent<Player>();
-                if ( component != null )
+                Player player = collision.gameObject.GetComponent<Player>();
+                if ( player != null )
                 {
-                    PlayerHealth component2 = component.GetComponent<PlayerHealth>();
-                    Rigidbody2D component3 = component.GetComponent<Rigidbody2D>();
                     if ( !Plugin.playerInvulnerable )
                     {
-                        component2?.Damage( ___punchDamage, Health.DamageType.Physical );
+                        PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+
+                        playerHealth?.Damage( ___punchDamage, Health.DamageType.Physical );
+                        
+                        player.ApplyStun( ___punchStunDuration );
                     }
-                    if ( component3 != null )
-                    {
-                        Vector2 vector = ___rb.velocity;
-                        vector *= ___punchPushTweak;
-                        component3.AddForce( vector, ForceMode2D.Impulse );
-                    }
-                    component.ApplyStun( ___punchStunDuration );
+
+                    Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+
+                    Vector2 bettyVelocity = ___rb.velocity;
+                    bettyVelocity *= ___punchPushTweak;
+                    playerRb?.AddForce( bettyVelocity, ForceMode2D.Impulse );
+
                     ___audioPlayer.PlayAudioAfterDestruction( ___punchHitSound, ___punchVolume );
                     ___doPunch = false;
                 }
@@ -391,6 +397,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the BunnyGoon Grab collision
+    /// </summary>
     [HarmonyPatch( typeof( BunnyGoon_Grabbing ), nameof( BunnyGoon_Grabbing.Grab ) )]
     class GoonGrabPatch
     {
@@ -400,6 +409,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the BunnyGoon walking grab collision
+    /// </summary>
     [HarmonyPatch( typeof( BunnyGoon_Walking ), nameof( BunnyGoon_Walking.Grab ) )]
     class GoonWalkGrabPatch
     {
@@ -435,6 +447,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the corruption trigger, so that it isn't triggered when the player is intangible
+    /// </summary>
     [HarmonyPatch( typeof( CorruptionTrigger ), "OnTriggerEnter2D" )]
     class CorruptionTriggerPatch
     {
@@ -470,76 +485,89 @@ namespace FemboySurvivalCheats
     {
         static bool Prefix( Explosion __instance, float ___explosionRadius, LayerMask ___enemyLayer, LayerMask ___objectLayer, LayerMask ___playerLayer, int ___damage, float ___explosionForce )
         {
-            Collider2D[] array = Physics2D.OverlapCircleAll( __instance.transform.position, ___explosionRadius, ___enemyLayer );
-            Collider2D[] array2 = Physics2D.OverlapCircleAll( __instance.transform.position, ___explosionRadius, ___objectLayer );
-            Collider2D collider2D = Physics2D.OverlapCircle( __instance.transform.position, ___explosionRadius, ___playerLayer );
-            for ( int i = 0; i < array.Length; i++ )
-            {
-                Health component = array[ i ].GetComponent<Health>();
-                Rigidbody2D component2 = array[ i ].GetComponent<Rigidbody2D>();
-                Animator component3 = array[ i ].GetComponent<Animator>();
-                if ( component != null )
-                {
-                    component.Damage( ___damage, Health.DamageType.Magical );
-                    Debug.Log( $"Fireball dealt {___damage} to {array[ i ].name}." );
-                }
-                Vector2 vector = array[ i ].transform.position - __instance.transform.position;
-                vector.Normalize();
-                vector *= ___explosionForce;
-                component2?.AddForce( vector, ForceMode2D.Impulse );
-                component3?.SetTrigger( "Stun" );
-            }
-            if ( collider2D != null )
-            {
-                Rigidbody2D component4 = collider2D.GetComponent<Rigidbody2D>();
+            Collider2D[] enemyColliders = Physics2D.OverlapCircleAll( __instance.transform.position, ___explosionRadius, ___enemyLayer );
+            Collider2D[] objectColliders = Physics2D.OverlapCircleAll( __instance.transform.position, ___explosionRadius, ___objectLayer );
+            Collider2D playerCollider = Physics2D.OverlapCircle( __instance.transform.position, ___explosionRadius, ___playerLayer );
 
+            // Loop through all enemies
+            for ( int i = 0; i < enemyColliders.Length; i++ )
+            {
+                Health enemyHealth = enemyColliders[ i ].GetComponent<Health>();
+                Rigidbody2D enemyRb = enemyColliders[ i ].GetComponent<Rigidbody2D>();
+                Animator enemyAnimator = enemyColliders[ i ].GetComponent<Animator>();
+
+                Lily lily = enemyColliders[ i ].GetComponent<Lily>();
+                Kaly kaly = enemyColliders[ i ].GetComponent<Kaly>();
+
+                enemyHealth?.Damage( ___damage, Health.DamageType.Magical );
+                Debug.Log( $"Fireball dealt {___damage} to {enemyColliders[ i ].name}." );
+
+                Vector2 explosionToEnemy = enemyColliders[ i ].transform.position - __instance.transform.position;
+                explosionToEnemy.Normalize();
+                explosionToEnemy *= ___explosionForce;
+                enemyRb?.AddForce( explosionToEnemy, ForceMode2D.Impulse );
+                enemyAnimator?.SetTrigger( "Stun" );
+
+                if ( lily != null || kaly != null )
+                {
+                    enemyAnimator?.SetBool( "SkipIdle", true );
+                }
+            }
+
+            // This is where the actual patch happens. The rest is just copied from the Assembly, because I can't exactly decouple this without rewriting
+            // If the player is intangible, why bother affecting them?
+            if ( playerCollider != null && !Plugin.playerIntangible )
+            {
+                Rigidbody2D playerRb = playerCollider.GetComponent<Rigidbody2D>();
+
+                // If the player is invulnerable, they shouldn't take damage or be stunned
                 if ( !Plugin.playerInvulnerable )
                 {
                     Player.instance.GetComponent<Health>().Damage( ___damage, Health.DamageType.Magical );
-                    
-                    if ( !Plugin.playerIntangible )
-                        Player.instance.ApplyStun( 1.5f );
+                    Player.instance.ApplyStun( 1.5f );
                 }
 
-                if ( !Plugin.playerIntangible )
-                {
-                    Vector2 vector2 = Player.instance.transform.position - __instance.transform.position;
-                    vector2.Normalize();
-                    vector2 *= ___explosionForce;
-                    
-                    component4?.AddForce( vector2, ForceMode2D.Impulse );
-                }
+                Vector2 explosionToPlayer = Player.instance.transform.position - __instance.transform.position;
+                explosionToPlayer.Normalize();
+                explosionToPlayer *= ___explosionForce;
+                
+                playerRb?.AddForce( explosionToPlayer, ForceMode2D.Impulse );
             }
-            for ( int j = 0; j < array2.Length; j++ )
+
+            // Loop through all objects
+            for ( int j = 0; j < objectColliders.Length; j++ )
             {
-                Health component5 = array2[ j ].GetComponent<Health>();
-                Rigidbody2D component6 = array2[ j ].GetComponent<Rigidbody2D>();
-                if ( component5 != null )
-                {
-                    component5.Damage( ___damage, Health.DamageType.Magical );
-                    Debug.Log( $"Fireball dealt {___damage} to {array2[ j ].name}." );
-                }
-                Vector2 vector3 = array2[ j ].transform.position - __instance.transform.position;
-                vector3.Normalize();
-                vector3 *= ___explosionForce;
-                component6?.AddForce( vector3, ForceMode2D.Impulse );
+                Health objectHealth = objectColliders[ j ].GetComponent<Health>();
+                Rigidbody2D objectRb = objectColliders[ j ].GetComponent<Rigidbody2D>();
+
+                objectHealth?.Damage( ___damage, Health.DamageType.Magical );
+                Debug.Log( $"Fireball dealt {___damage} to {objectColliders[ j ].name}." );
+
+                Vector2 explosionToObject = objectColliders[ j ].transform.position - __instance.transform.position;
+                explosionToObject.Normalize();
+                explosionToObject *= ___explosionForce;
+                objectRb?.AddForce( explosionToObject, ForceMode2D.Impulse );
             }
 
             return false;
         }
     }
 
+    /// <summary>
+    /// Patches the Gallery to allow the player forcibly unlock it
+    /// </summary>
     [HarmonyPatch( typeof( GalleryTracker ), nameof( GalleryTracker.IsUnlocked ) )]
     class GalleryTrackerUnlockedPatch
     {
-        static bool Prefix( string sceneName, ref bool __result, List<string> ___seenScenes )
+        static bool Prefix( ref bool __result )
         {
             if ( Plugin.forceGalleryUnlock )
+            {
                 __result = true;
-            else
-                __result = ___seenScenes.Contains( sceneName );
+                return false;
+            }
 
-            return false;
+            return true;
         }
     }
 
@@ -560,6 +588,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches the health trigger, because Bunny uses this to cause damage to the player, and that's not allowed when intangible or invulnerable
+    /// </summary>
     [HarmonyPatch( typeof( Health ), "OnTriggerEnter2D" )]
     class HealthTriggerPatch
     {
@@ -584,22 +615,23 @@ namespace FemboySurvivalCheats
 
             if ( ___doChargeHit )
             {
-                Player component = collision.gameObject.GetComponent<Player>();
-                if ( component != null )
+                Player player = collision.gameObject.GetComponent<Player>();
+                if ( player != null )
                 {
-                    PlayerHealth component2 = component.GetComponent<PlayerHealth>();
-                    Rigidbody2D component3 = component.GetComponent<Rigidbody2D>();
                     if ( !Plugin.playerInvulnerable )
                     {
-                        component2?.Damage( ___chargeDamage, Health.DamageType.Physical );
+                        PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+
+                        playerHealth?.Damage( ___chargeDamage, Health.DamageType.Physical );
+
+                        player.ApplyStun( ___chargeStunDuration );
                     }
-                    if ( component3 != null )
-                    {
-                        Vector2 vector = ___rb.velocity;
-                        vector *= ___chargePushTweak;
-                        component3.AddForce( vector, ForceMode2D.Impulse );
-                    }
-                    component.ApplyStun( ___chargeStunDuration );
+                    
+                    Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+                    Vector2 kalyVelocity = ___rb.velocity;
+                    kalyVelocity *= ___chargePushTweak;
+                    playerRb?.AddForce( kalyVelocity, ForceMode2D.Impulse );
+                    
                     __instance.StartCoroutine( __instance.DisableHitboxFor( 0.5f ) );
                     ___audioPlayer.PlayAudioAfterDestruction( ___chargeHitSound, ___chargeHitVolume );
                     ___doChargeHit = false;
@@ -622,23 +654,23 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches Kalysea's shockwave (schockwave) so it doesn't hurt the player when intangible or invulnerable
+    /// </summary>
     [HarmonyPatch( typeof( KalyStompSchockwave ), "OnTriggerEnter2D" )]
     class KalyShockwavePatch
     {
         static bool Prefix( Collider2D collision, int ___diceAmmount, int ___strengthBonus, int ___diceSize, float ___stunDuration )
         {
-            if ( Plugin.playerIntangible ) return false;
+            if ( Plugin.playerIntangible || Plugin.playerInvulnerable ) return false;
 
-            Player component = collision.GetComponent<Player>();
-            if ( component != null && !Plugin.playerIntangible )
+            Player player = collision.GetComponent<Player>();
+            if ( player != null )
             {
-                PlayerHealth component2 = collision.GetComponent<PlayerHealth>();
-                if ( component2 != null && !Plugin.playerInvulnerable )
-                {
-                    int num = UnityEngine.Random.Range( ___diceAmmount + ___strengthBonus, ___diceAmmount * ___diceSize + 1 + ___strengthBonus );
-                    component2.Damage( num, Health.DamageType.Physical );
-                }
-                component.ApplyStun( ___stunDuration );
+                PlayerHealth playerHealth = collision.GetComponent<PlayerHealth>();
+                int diceRoll = Random.Range( ___diceAmmount + ___strengthBonus, ___diceAmmount * ___diceSize + 1 + ___strengthBonus );
+                playerHealth?.Damage( diceRoll, Health.DamageType.Physical );
+                player.ApplyStun( ___stunDuration );
             }
 
             return false;
@@ -657,6 +689,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches Lily's collision, because intangibility and stuff. Also she kicks so invulnerable checks as well
+    /// </summary>
     [HarmonyPatch( typeof( Lily ), "OnCollisionEnter2D" )]
     class LilyCollisionPatch
     {
@@ -666,22 +701,22 @@ namespace FemboySurvivalCheats
 
             if ( ___doKick )
             {
-                Player component = collision.gameObject.GetComponent<Player>();
-                if ( component != null )
+                Player player = collision.gameObject.GetComponent<Player>();
+                if ( player != null )
                 {
-                    PlayerHealth component2 = component.GetComponent<PlayerHealth>();
-                    Rigidbody2D component3 = component.GetComponent<Rigidbody2D>();
+                    PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+                    Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
                     if ( !Plugin.playerInvulnerable )
                     {
-                        component2?.Damage( ___kickDamage, Health.DamageType.Physical );
+                        playerHealth?.Damage( ___kickDamage, Health.DamageType.Physical );
                     }
-                    if ( component3 != null )
+                    if ( playerRb != null )
                     {
-                        Vector2 vector = ___rb.velocity;
-                        vector *= ___kickPushTweak;
-                        component3.AddForce( vector, ForceMode2D.Impulse );
+                        Vector2 lilyVelocity = ___rb.velocity;
+                        lilyVelocity *= ___kickPushTweak;
+                        playerRb.AddForce( lilyVelocity, ForceMode2D.Impulse );
                     }
-                    component.ApplyStun( ___kickStunDuration );
+                    player.ApplyStun( ___kickStunDuration );
                     ___audioPlayer.PlayAudioAfterDestruction( ___kickHitSound, ___kickHitVolume );
                     ___doKick = false;
                 }
@@ -691,6 +726,9 @@ namespace FemboySurvivalCheats
         }
     }
 
+    /// <summary>
+    /// Patches Lily's running grab, intangibility and stuff yk
+    /// </summary>
     [HarmonyPatch( typeof( Lily_Running ), nameof( Lily_Running.Grab ) )]
     class LilyGrabPatch
     {
@@ -743,7 +781,7 @@ namespace FemboySurvivalCheats
     [HarmonyPatch( typeof( PlayerLewd ), nameof( PlayerLewd.CanMasturbate ) )]
     class PlayerLewdCanMasturbatePatch
     {
-        static bool Prefix( ref bool __result, LewdInfo ___playerLewdInfo, float ___arousal )
+        static bool Prefix( ref bool __result )
         {
             if ( Plugin.alwaysCanMasturbate )
             {
@@ -751,13 +789,13 @@ namespace FemboySurvivalCheats
                 return false;
             }
 
-            float num = 50f - 15f * ___playerLewdInfo.masturbationFetish.level;
-            __result = ___arousal >= num;
-
-            return false;
+            return true;
         }
     }
 
+    /// <summary>
+    /// If the player is in a wall, this will attempt to free the player. I don't want it to run if noclip is enabled though
+    /// </summary>
     [HarmonyPatch( typeof( UnstuckPlayer ), "CheckIfStuck" )]
     class UnstuckPatch
     {
@@ -791,15 +829,16 @@ namespace FemboySurvivalCheats
 
             if ( !___hitDone )
             {
-                Player component = collision.collider.GetComponent<Player>();
-                Health component2 = collision.collider.GetComponent<Health>();
+                Player player = collision.collider.GetComponent<Player>();
+                Health health = collision.collider.GetComponent<Health>();
 
-                component?.ApplyStun( ___stunDuration );
-
+                // Don't stun an invulnerable player
                 if ( !Plugin.playerInvulnerable )
-                {
-                    component2?.Damage( ___damage, Health.DamageType.Physical );
-                }
+                    player?.ApplyStun( ___stunDuration );
+
+                // Don't damage an invulnerable player, but do damage any enemy
+                if ( !Plugin.playerInvulnerable || player == null )
+                    health?.Damage( ___damage, Health.DamageType.Physical );
 
                 ___hitDone = true;
             }
