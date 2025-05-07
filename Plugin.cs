@@ -751,6 +751,18 @@ namespace FemboySurvivalCheats
     }
 
     /// <summary>
+    /// Patches Maeve's running grab collision, which was added sometime between Demo8 and Demo15
+    /// </summary>
+    [HarmonyPatch( typeof( Maeve_Run ), nameof( Maeve_Run.Grab ) )]
+    class MaeveRunGrabPatch
+    {
+        static bool Prefix()
+        {
+            return !Plugin.playerIntangible;
+        }
+    }
+
+    /// <summary>
     /// Patches the collision between any Mimic and the player, so that it won't grab the player if they're intangible
     /// </summary>
     [HarmonyPatch( typeof( Mimic ), nameof( Mimic.Grab ) )]
