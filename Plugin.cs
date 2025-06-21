@@ -97,7 +97,7 @@ namespace FemboySurvivalCheats
             }
 
             int obstacleLayer = 1024;
-            int converted = ( int )System.Math.Log( obstacleLayer, 2 );
+            int converted = ( int ) System.Math.Log( obstacleLayer, 2 );
 
             if ( Player.instance?.gameObject != null )
             {
@@ -170,7 +170,7 @@ namespace FemboySurvivalCheats
                 }
 
                 string goldAmount = GUI.TextField( new( 20, 325, 65, 20 ), "1000", 6 );
-                
+
                 if ( GUI.Button( new( 90, 325, 80, 20 ), "Add gold" ) )
                 {
                     this.AddGold( int.Parse( goldAmount ) );
@@ -289,7 +289,7 @@ namespace FemboySurvivalCheats
             // Enemy: EnemyStatusEffects
             if ( other.GetComponent<StatusEffectsManager>() == null )
                 return true;
-            
+
             return !Plugin.playerIntangible;
         }
     }
@@ -317,9 +317,9 @@ namespace FemboySurvivalCheats
 
                         player.ApplyStun( ___hitStunDuration );
                     }
-                    
+
                     Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
-                    
+
                     Vector2 aquaVelocity = ___rb.velocity;
                     aquaVelocity *= ___hitPushTweak;
                     playerRb.AddForce( aquaVelocity, ForceMode2D.Impulse );
@@ -354,7 +354,7 @@ namespace FemboySurvivalCheats
     {
         static bool Prefix( Collision2D collision, ref bool ___doPunch, int ___punchDamage, Rigidbody2D ___rb, float ___punchPushTweak, float ___punchStunDuration, EntityAudioPlayer ___audioPlayer, AudioClip ___punchHitSound, float ___punchVolume )
         {
-            if ( Plugin.playerIntangible ) return false; 
+            if ( Plugin.playerIntangible ) return false;
 
             if ( ___doPunch )
             {
@@ -366,7 +366,7 @@ namespace FemboySurvivalCheats
                         PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
 
                         playerHealth?.Damage( ___punchDamage, Health.DamageType.Physical );
-                        
+
                         player.ApplyStun( ___punchStunDuration );
                     }
 
@@ -530,7 +530,7 @@ namespace FemboySurvivalCheats
                 Vector2 explosionToPlayer = Player.instance.transform.position - __instance.transform.position;
                 explosionToPlayer.Normalize();
                 explosionToPlayer *= ___explosionForce;
-                
+
                 playerRb?.AddForce( explosionToPlayer, ForceMode2D.Impulse );
             }
 
@@ -576,7 +576,7 @@ namespace FemboySurvivalCheats
     /// </summary>
     [HarmonyPatch( typeof( GrabManager ), nameof( GrabManager.StartGrab ) )]
 #pragma warning disable IDE0300 // For whatever reason, trying to compile without the "new System.Type[]" causes problems, and I don't know why (it worked before)
-    [HarmonyPatch( [ typeof( Enemy ), typeof( GrabAttack ) ] )]
+    [HarmonyPatch( new System.Type[] { typeof( Enemy ), typeof( GrabAttack ) } )]
 #pragma warning restore IDE0300 // So I'll just continue to use this, and tell the IDE to stop complaining
     class GrabManagerStartRapePatch
     {
