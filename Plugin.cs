@@ -574,9 +574,9 @@ namespace FemboySurvivalCheats
     /// <summary>
     /// Adds a log to GrabManager, so that it displays the name of the enemy raping the player
     /// </summary>
-    [HarmonyPatch( typeof( GrabManager ), nameof( GrabManager.StartRape ) )]
+    [HarmonyPatch( typeof( GrabManager ), nameof( GrabManager.StartGrab ) )]
 #pragma warning disable IDE0300 // For whatever reason, trying to compile without the "new System.Type[]" causes problems, and I don't know why (it worked before)
-    [HarmonyPatch( new System.Type[]{ typeof( Enemy ), typeof( GrabAttack ) } )]
+    [HarmonyPatch( [ typeof( Enemy ), typeof( GrabAttack ) ] )]
 #pragma warning restore IDE0300 // So I'll just continue to use this, and tell the IDE to stop complaining
     class GrabManagerStartRapePatch
     {
