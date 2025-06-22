@@ -113,7 +113,7 @@ namespace FemboySurvivalCheats
         }
 
         /// <summary>
-        /// Called for rendering and handling GUI events
+        /// Renders the in-game cheat menu and handles its GUI events.
         /// </summary>
         private void OnGUI()
 #pragma warning restore IDE0051
@@ -173,60 +173,74 @@ namespace FemboySurvivalCheats
 
                 if ( GUI.Button( new( 90, 325, 80, 20 ), "Add gold" ) )
                 {
-                    this.AddGold( int.Parse( goldAmount ) );
+                    if ( int.TryParse( goldAmount, out int goldToAdd ) )
+                    {
+                        this.AddGold( goldToAdd );
+                    }
+                    else
+                    {
+                        Logger.LogError( $"Invalid gold amount: {goldAmount}" );
+                    }
                 }
             }
         }
 
         /// <summary>
-        /// Kills any enemy that has spawned in, including bosses
+        /// Instantly kills all currently spawned enemies, including bosses, and ends any ongoing events.
         /// </summary>
         private void KillAllEnemies()
         {
+            // Ends any events as well, just in case
+            this.EndEvents();
+
             Enemy[] enemies = FindObjectsOfType<Enemy>();
 
             foreach ( var enemy in enemies )
             {
-                Logger.LogInfo( $"Making enemy \"{enemy.name}\" die" );
+                Logger.LogInfo( $"Making enemy \"{enemy?.name}\" die" );
 
-                enemy.GetComponent<Health>().Kill();
+                enemy?.GetComponent<Health>()?.Kill();
             }
-
-            // Ends any events as well, just in case
-            this.EndEvents();
         }
 
         /// <summary>
-        /// Ends any event started by the GrabManager or the CorruptionManager
+        /// Ends any active event managed by the GrabManager or CorruptionManager.
         /// </summary>
         private void EndEvents()
         {
-            GrabManager grabManager = Player.instance.GetComponent<GrabManager>();
-            if ( grabManager.IsActive() )
-                Traverse.Create( grabManager ).Method( "EndRape" ).GetValue();
+            GrabManager grabManager = Player.instance?.GetComponent<GrabManager>();
+            if ( grabManager?.IsActive() == true )
+                Traverse.Create( grabManager ).Method( "EndGrab" ).GetValue();
 
-            CorruptionManager corruptionManager = Player.instance.GetComponent<CorruptionManager>();
-            if ( corruptionManager.IsActive() )
+            CorruptionManager corruptionManager = Player.instance?.GetComponent<CorruptionManager>();
+            if ( corruptionManager?.IsActive() == true )
                 Traverse.Create( corruptionManager ).Method( "EndEvent" ).GetValue();
         }
 
         /// <summary>
-        /// Sets the player's health to max
+        /// Sets the player's health to max.
         /// </summary>
         private void MaxPlayerHealth()
         {
-            PlayerHealth playerHealth = Player.instance.GetComponent<PlayerHealth>();
-            playerHealth.SetHealth( playerHealth.GetMaxHealth() );
+            PlayerHealth playerHealth = Player.instance?.GetComponent<PlayerHealth>();
+            playerHealth?.SetHealth( playerHealth?.GetMaxHealth() ?? 100 );
         }
 
         /// <summary>
-        /// Sets the countdown between waves to max
+        /// Sets the wave countdown timer to infinity, preventing the next wave from starting.
         /// </summary>
         private void MaxWaveCountdown()
         {
             Logger.LogInfo( "Changing wave countdown to float.PositiveInfinity" );
 
             EnemySpawner spawnerInstance = EnemySpawner.instance;
+
+            if ( spawnerInstance == null )
+            {
+                Logger.LogError( "EnemySpawner instance is null" );
+                return;
+            }
+
             Traverse<float> instanceCountdown = Traverse.Create( spawnerInstance ).Field<float>( "countdown" );
 
             instanceCountdown.Value = float.PositiveInfinity;
@@ -234,37 +248,49 @@ namespace FemboySurvivalCheats
         }
 
         /// <summary>
-        /// Levels up the player's normal stats
+        /// Levels up the player's normal stats.
         /// </summary>
         private void LevelUpNormal()
         {
-            PlayerProgression progression = Player.instance.GetComponent<PlayerProgression>();
+            PlayerProgression progression = Player.instance?.GetComponent<PlayerProgression>();
+
+            if ( progression == null )
+            {
+                Logger.LogError( "PlayerProgression instance is null" );
+                return;
+            }
 
             Traverse.Create( progression ).Method( "LevelUp" ).GetValue();
         }
 
         /// <summary>
-        /// Levels up the player's sexual stats
+        /// Levels up the player's sexual stats.
         /// </summary>
         private void LevelUpSex()
         {
-            PlayerProgression progression = Player.instance.GetComponent<PlayerProgression>();
+            PlayerProgression progression = Player.instance?.GetComponent<PlayerProgression>();
+
+            if ( progression == null )
+            {
+                Logger.LogError( "PlayerProgression instance is null" );
+                return;
+            }
 
             Traverse.Create( progression ).Method( "SexLevelUp" ).GetValue();
         }
 
         /// <summary>
-        /// Removes any status effect currently afflicting the player
+        /// Removes all active status effects from the player.
         /// </summary>
         private void RemoveAllStatusEffects()
         {
             StatusEffectsManager manager = StatusEffectsManager.instance;
 
-            List<StatusEffect> effects = manager.GetActiveEffects();
+            List<StatusEffect> effects = manager?.GetActiveEffects();
 
-            effects.Clear();
+            effects?.Clear();
 
-            Logger.LogInfo( manager.GetActiveEffects().Count );
+            Logger.LogInfo( $"Active effect count: {manager?.GetActiveEffects().Count}" );
         }
 
         /// <summary>
@@ -273,7 +299,7 @@ namespace FemboySurvivalCheats
         /// <param name="amount">The amount of gold to add</param>
         private void AddGold( int amount )
         {
-            Inventory.instance.AddGold( amount );
+            Inventory.instance?.AddGold( amount );
         }
     }
 
@@ -312,20 +338,20 @@ namespace FemboySurvivalCheats
                     if ( !Plugin.playerInvulnerable )
                     {
                         PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
-
                         playerHealth?.Damage( ___hitDamage, Health.DamageType.Physical );
-
-                        player.ApplyStun( ___hitStunDuration );
+                        player?.ApplyStun( ___hitStunDuration );
                     }
 
                     Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+                    if ( playerRb != null )
+                    {
+                        Vector2 aquaVelocity = ___rb?.velocity ?? Vector2.zero;
+                        aquaVelocity *= ___hitPushTweak;
+                        playerRb.AddForce( aquaVelocity, ForceMode2D.Impulse );
+                    }
 
-                    Vector2 aquaVelocity = ___rb.velocity;
-                    aquaVelocity *= ___hitPushTweak;
-                    playerRb.AddForce( aquaVelocity, ForceMode2D.Impulse );
-
-                    ___voice.VoiceDashHit();
-                    ___audioPlayer.PlayAudioAfterDestruction( ___hitSound, ___hitVolume );
+                    ___voice?.VoiceDashHit();
+                    ___audioPlayer?.PlayAudioAfterDestruction( ___hitSound, ___hitVolume );
                     ___doHit = false;
                 }
             }
@@ -364,19 +390,19 @@ namespace FemboySurvivalCheats
                     if ( !Plugin.playerInvulnerable )
                     {
                         PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
-
                         playerHealth?.Damage( ___punchDamage, Health.DamageType.Physical );
-
-                        player.ApplyStun( ___punchStunDuration );
+                        player?.ApplyStun( ___punchStunDuration );
                     }
 
                     Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+                    if ( playerRb != null )
+                    {
+                        Vector2 bettyVelocity = ___rb?.velocity ?? Vector2.zero;
+                        bettyVelocity *= ___punchPushTweak;
+                        playerRb.AddForce( bettyVelocity, ForceMode2D.Impulse );
+                    }
 
-                    Vector2 bettyVelocity = ___rb.velocity;
-                    bettyVelocity *= ___punchPushTweak;
-                    playerRb?.AddForce( bettyVelocity, ForceMode2D.Impulse );
-
-                    ___audioPlayer.PlayAudioAfterDestruction( ___punchHitSound, ___punchVolume );
+                    ___audioPlayer?.PlayAudioAfterDestruction( ___punchHitSound, ___punchVolume );
                     ___doPunch = false;
                 }
             }
@@ -492,20 +518,23 @@ namespace FemboySurvivalCheats
             // Loop through all enemies
             for ( int i = 0; i < enemyColliders.Length; i++ )
             {
-                Health enemyHealth = enemyColliders[ i ].GetComponent<Health>();
-                Rigidbody2D enemyRb = enemyColliders[ i ].GetComponent<Rigidbody2D>();
-                Animator enemyAnimator = enemyColliders[ i ].GetComponent<Animator>();
+                Health enemyHealth = enemyColliders[ i ]?.GetComponent<Health>();
+                Rigidbody2D enemyRb = enemyColliders[ i ]?.GetComponent<Rigidbody2D>();
+                Animator enemyAnimator = enemyColliders[ i ]?.GetComponent<Animator>();
 
-                Lily lily = enemyColliders[ i ].GetComponent<Lily>();
-                Kaly kaly = enemyColliders[ i ].GetComponent<Kaly>();
+                Lily lily = enemyColliders[ i ]?.GetComponent<Lily>();
+                Kaly kaly = enemyColliders[ i ]?.GetComponent<Kaly>();
 
                 enemyHealth?.Damage( ___damage, Health.DamageType.Magical );
-                Debug.Log( $"Fireball dealt {___damage} to {enemyColliders[ i ].name}." );
+                Debug.Log( $"Fireball dealt {___damage} to {enemyColliders[ i ]?.name}." );
 
-                Vector2 explosionToEnemy = enemyColliders[ i ].transform.position - __instance.transform.position;
-                explosionToEnemy.Normalize();
-                explosionToEnemy *= ___explosionForce;
-                enemyRb?.AddForce( explosionToEnemy, ForceMode2D.Impulse );
+                if ( enemyRb != null )
+                {
+                    Vector2 explosionToEnemy = enemyColliders[ i ].transform.position - __instance.transform.position;
+                    explosionToEnemy.Normalize();
+                    explosionToEnemy *= ___explosionForce;
+                    enemyRb.AddForce( explosionToEnemy, ForceMode2D.Impulse );
+                }
                 enemyAnimator?.SetTrigger( "Stun" );
 
                 if ( lily != null || kaly != null )
@@ -523,30 +552,36 @@ namespace FemboySurvivalCheats
                 // If the player is invulnerable, they shouldn't take damage or be stunned
                 if ( !Plugin.playerInvulnerable )
                 {
-                    Player.instance.GetComponent<Health>().Damage( ___damage, Health.DamageType.Magical );
-                    Player.instance.ApplyStun( 1.5f );
+                    Player.instance?.GetComponent<Health>()?.Damage( ___damage, Health.DamageType.Magical );
+                    Player.instance?.ApplyStun( 1.5f );
                 }
 
-                Vector2 explosionToPlayer = Player.instance.transform.position - __instance.transform.position;
-                explosionToPlayer.Normalize();
-                explosionToPlayer *= ___explosionForce;
+                if ( playerRb != null )
+                {
+                    Vector2 explosionToPlayer = Player.instance != null ? ( Vector2 ) ( Player.instance.transform.position - __instance.transform.position ) : Vector2.zero;
+                    explosionToPlayer.Normalize();
+                    explosionToPlayer *= ___explosionForce;
 
-                playerRb?.AddForce( explosionToPlayer, ForceMode2D.Impulse );
+                    playerRb.AddForce( explosionToPlayer, ForceMode2D.Impulse );
+                }
             }
 
             // Loop through all objects
             for ( int j = 0; j < objectColliders.Length; j++ )
             {
-                Health objectHealth = objectColliders[ j ].GetComponent<Health>();
-                Rigidbody2D objectRb = objectColliders[ j ].GetComponent<Rigidbody2D>();
+                Health objectHealth = objectColliders[ j ]?.GetComponent<Health>();
+                Rigidbody2D objectRb = objectColliders[ j ]?.GetComponent<Rigidbody2D>();
 
                 objectHealth?.Damage( ___damage, Health.DamageType.Magical );
-                Debug.Log( $"Fireball dealt {___damage} to {objectColliders[ j ].name}." );
+                Debug.Log( $"Fireball dealt {___damage} to {objectColliders[ j ]?.name}." );
 
-                Vector2 explosionToObject = objectColliders[ j ].transform.position - __instance.transform.position;
-                explosionToObject.Normalize();
-                explosionToObject *= ___explosionForce;
-                objectRb?.AddForce( explosionToObject, ForceMode2D.Impulse );
+                if ( objectRb != null )
+                {
+                    Vector2 explosionToObject = objectColliders[ j ].transform.position - __instance.transform.position;
+                    explosionToObject.Normalize();
+                    explosionToObject *= ___explosionForce;
+                    objectRb.AddForce( explosionToObject, ForceMode2D.Impulse );
+                }
             }
 
             return false;
@@ -554,7 +589,7 @@ namespace FemboySurvivalCheats
     }
 
     /// <summary>
-    /// Patches the Gallery to allow the player forcibly unlock it
+    /// Forces the gallery to appear unlocked if the corresponding cheat is enabled.
     /// </summary>
     [HarmonyPatch( typeof( GalleryTracker ), nameof( GalleryTracker.IsUnlocked ) )]
     class GalleryTrackerUnlockedPatch
@@ -572,17 +607,17 @@ namespace FemboySurvivalCheats
     }
 
     /// <summary>
-    /// Adds a log to GrabManager, so that it displays the name of the enemy raping the player
+    /// Adds a log to GrabManager, so that it displays the name of the enemy initiating the grab event.
     /// </summary>
     [HarmonyPatch( typeof( GrabManager ), nameof( GrabManager.StartGrab ) )]
 #pragma warning disable IDE0300 // For whatever reason, trying to compile without the "new System.Type[]" causes problems, and I don't know why (it worked before)
     [HarmonyPatch( new System.Type[] { typeof( Enemy ), typeof( GrabAttack ) } )]
 #pragma warning restore IDE0300 // So I'll just continue to use this, and tell the IDE to stop complaining
-    class GrabManagerStartRapePatch
+    class GrabManagerStartGrabPatch
     {
         static bool Prefix( Enemy e, GrabAttack grab )
         {
-            Debug.Log( $"Starting \"{grab?.sceneName}\" rape by: {e.enemyName} ({e.name})" );
+            Debug.Log( $"Starting \"{grab?.sceneName}\" grab by: {e.enemyName} ({e.name})" );
 
             return true;
         }
@@ -621,19 +656,20 @@ namespace FemboySurvivalCheats
                     if ( !Plugin.playerInvulnerable )
                     {
                         PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
-
                         playerHealth?.Damage( ___chargeDamage, Health.DamageType.Physical );
-
-                        player.ApplyStun( ___chargeStunDuration );
+                        player?.ApplyStun( ___chargeStunDuration );
                     }
                     
                     Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
-                    Vector2 kalyVelocity = ___rb.velocity;
-                    kalyVelocity *= ___chargePushTweak;
-                    playerRb?.AddForce( kalyVelocity, ForceMode2D.Impulse );
-                    
-                    __instance.StartCoroutine( __instance.DisableHitboxFor( 0.5f ) );
-                    ___audioPlayer.PlayAudioAfterDestruction( ___chargeHitSound, ___chargeHitVolume );
+                    if ( playerRb != null )
+                    {
+                        Vector2 kalyVelocity = ___rb?.velocity ?? Vector2.zero;
+                        kalyVelocity *= ___chargePushTweak;
+                        playerRb.AddForce( kalyVelocity, ForceMode2D.Impulse );
+                    }
+
+                    __instance?.StartCoroutine( __instance.DisableHitboxFor( 0.5f ) );
+                    ___audioPlayer?.PlayAudioAfterDestruction( ___chargeHitSound, ___chargeHitVolume );
                     ___doChargeHit = false;
                 }
             }
@@ -690,7 +726,7 @@ namespace FemboySurvivalCheats
     }
 
     /// <summary>
-    /// Patches Lily's collision, because intangibility and stuff. Also she kicks so invulnerable checks as well
+    /// Patches Lily's collision to prevent effects if the player is intangible or invulnerable.
     /// </summary>
     [HarmonyPatch( typeof( Lily ), "OnCollisionEnter2D" )]
     class LilyCollisionPatch
@@ -712,12 +748,12 @@ namespace FemboySurvivalCheats
                     }
                     if ( playerRb != null )
                     {
-                        Vector2 lilyVelocity = ___rb.velocity;
+                        Vector2 lilyVelocity = ___rb?.velocity ?? Vector2.zero;
                         lilyVelocity *= ___kickPushTweak;
                         playerRb.AddForce( lilyVelocity, ForceMode2D.Impulse );
                     }
-                    player.ApplyStun( ___kickStunDuration );
-                    ___audioPlayer.PlayAudioAfterDestruction( ___kickHitSound, ___kickHitVolume );
+                    player?.ApplyStun( ___kickStunDuration );
+                    ___audioPlayer?.PlayAudioAfterDestruction( ___kickHitSound, ___kickHitVolume );
                     ___doKick = false;
                 }
             }
@@ -727,7 +763,7 @@ namespace FemboySurvivalCheats
     }
 
     /// <summary>
-    /// Patches Lily's running grab, intangibility and stuff yk
+    /// Patches Lily's running grab to prevent it from affecting the player if intangible.
     /// </summary>
     [HarmonyPatch( typeof( Lily_Running ), nameof( Lily_Running.Grab ) )]
     class LilyGrabPatch
@@ -806,7 +842,7 @@ namespace FemboySurvivalCheats
     }
 
     /// <summary>
-    /// If the player is in a wall, this will attempt to free the player. I don't want it to run if noclip is enabled though
+    /// Prevents the unstuck logic from running if noclip is enabled.
     /// </summary>
     [HarmonyPatch( typeof( UnstuckPlayer ), "CheckIfStuck" )]
     class UnstuckPatch
