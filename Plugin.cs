@@ -31,6 +31,8 @@ namespace FemboySurvivalCheats
             var harmony = new Harmony( PluginInfo.PLUGIN_GUID );
             harmony.PatchAll();
 
+            Logger.LogInfo( "Harmony patches applied successfully!" );
+
             // Dynamically patch GrabManager.StartGrab if it exists
             // var grabManagerType = typeof( GrabManager );
             // MethodInfo startGrabMethod = grabManagerType.GetMethod( "StartGrab", new System.Type[] { typeof( Enemy ), typeof( GrabAttack ) } );
