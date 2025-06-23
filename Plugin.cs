@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using HarmonyLib;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace FemboySurvivalCheats
@@ -29,6 +30,20 @@ namespace FemboySurvivalCheats
 
             var harmony = new Harmony( PluginInfo.PLUGIN_GUID );
             harmony.PatchAll();
+
+            // Dynamically patch GrabManager.StartGrab if it exists
+            // var grabManagerType = typeof( GrabManager );
+            // MethodInfo startGrabMethod = grabManagerType.GetMethod( "StartGrab", new System.Type[] { typeof( Enemy ), typeof( GrabAttack ) } );
+            // if ( startGrabMethod != null )
+            // {
+            //     var prefix = typeof( GrabManagerStartGrabPatch ).GetMethod( "Prefix", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public );
+            //     harmony.Patch( startGrabMethod, prefix: new HarmonyMethod( prefix ) );
+            //     Logger.LogInfo( "Patched GrabManager.StartGrab(Enemy, GrabAttack)" );
+            // }
+            // else
+            // {
+            //     Logger.LogWarning( "GrabManager.StartGrab(Enemy, GrabAttack) not found. Patch skipped." );
+            // }
         }
 
         /// <summary>
@@ -601,23 +616,6 @@ namespace FemboySurvivalCheats
                 __result = true;
                 return false;
             }
-
-            return true;
-        }
-    }
-
-    /// <summary>
-    /// Adds a log to GrabManager, so that it displays the name of the enemy initiating the grab event.
-    /// </summary>
-    [HarmonyPatch( typeof( GrabManager ), nameof( GrabManager.StartGrab ) )]
-#pragma warning disable IDE0300 // For whatever reason, trying to compile without the "new System.Type[]" causes problems, and I don't know why (it worked before)
-    [HarmonyPatch( new System.Type[] { typeof( Enemy ), typeof( GrabAttack ) } )]
-#pragma warning restore IDE0300 // So I'll just continue to use this, and tell the IDE to stop complaining
-    class GrabManagerStartGrabPatch
-    {
-        static bool Prefix( Enemy e, GrabAttack grab )
-        {
-            Debug.Log( $"Starting \"{grab?.sceneName}\" grab by: {e.enemyName} ({e.name})" );
 
             return true;
         }
