@@ -19,6 +19,10 @@ namespace FemboySurvivalCheats
 
         public static bool noclip = false;
 
+        public static bool disableSpellCooldowns = false;
+
+        public static bool infiniteMana = false;
+
 #pragma warning disable IDE0051 // Private methods not accessed (it's a Unity thing)
         /// <summary>
         /// Called once loaded
@@ -137,7 +141,7 @@ namespace FemboySurvivalCheats
         {
             if ( menuOpen )
             {
-                GUI.Box( new Rect( 10, 10, 170, 345 ), "Cheats" );
+                GUI.Box( new Rect( 10, 10, 170, 385 ), "Cheats" );
 
                 GUI.Label( new( 20, 25, 170, 20 ), "Toggle menu with F1" );
 
@@ -151,44 +155,48 @@ namespace FemboySurvivalCheats
 
                 noclip = GUI.Toggle( new( 20, 120, 150, 20 ), noclip, "Noclip" );
 
-                if ( GUI.Button( new( 20, 150, 150, 20 ), "Infinite Wave Time" ) )
+                disableSpellCooldowns = GUI.Toggle( new( 20, 140, 150, 20 ), disableSpellCooldowns, "Disable spell cooldowns" );
+
+                infiniteMana = GUI.Toggle( new( 20, 160, 150, 20 ), infiniteMana, "Infinite mana" );
+
+                if ( GUI.Button( new( 20, 190, 150, 20 ), "Infinite Wave Time" ) )
                 {
                     this.MaxWaveCountdown();
                 }
 
-                if ( GUI.Button( new( 20, 175, 150, 20 ), "Kill all enemies" ) )
+                if ( GUI.Button( new( 20, 215, 150, 20 ), "Kill all enemies" ) )
                 {
                     this.KillAllEnemies();
                 }
 
-                if ( GUI.Button( new( 20, 200, 150, 20 ), "Max health" ) )
+                if ( GUI.Button( new( 20, 240, 150, 20 ), "Max health" ) )
                 {
                     this.MaxPlayerHealth();
                 }
 
-                if ( GUI.Button( new( 20, 225, 150, 20 ), "Level Up!" ) )
+                if ( GUI.Button( new( 20, 265, 150, 20 ), "Level Up!" ) )
                 {
                     this.LevelUpNormal();
                 }
 
-                if ( GUI.Button( new( 20, 250, 150, 20 ), "Slut Level Up!" ) )
+                if ( GUI.Button( new( 20, 290, 150, 20 ), "Slut Level Up!" ) )
                 {
                     this.LevelUpSex();
                 }
 
-                if ( GUI.Button( new( 20, 275, 150, 20 ), "Remove status effects" ) )
+                if ( GUI.Button( new( 20, 315, 150, 20 ), "Remove status effects" ) )
                 {
                     this.RemoveAllStatusEffects();
                 }
 
-                if ( GUI.Button( new( 20, 300, 150, 20 ), "End current event" ) )
+                if ( GUI.Button( new( 20, 340, 150, 20 ), "End current event" ) )
                 {
                     this.EndEvents();
                 }
 
-                string goldAmount = GUI.TextField( new( 20, 325, 65, 20 ), "1000", 6 );
+                string goldAmount = GUI.TextField( new( 20, 365, 65, 20 ), "1000", 6 );
 
-                if ( GUI.Button( new( 90, 325, 80, 20 ), "Add gold" ) )
+                if ( GUI.Button( new( 90, 365, 80, 20 ), "Add gold" ) )
                 {
                     if ( int.TryParse( goldAmount, out int goldToAdd ) )
                     {
@@ -198,6 +206,22 @@ namespace FemboySurvivalCheats
                     {
                         Logger.LogError( $"Invalid gold amount: {goldAmount}" );
                     }
+                }
+
+                GUI.Label( new( 20, 390, 75, 20 ), "Corruption:" );
+
+                if ( GUI.Button( new( 100, 390, 30, 20 ), "+" ) )
+                {
+                    // TODO: Increase corruption
+                    PlayerLewd lewd = Player.instance?.GetComponent<PlayerLewd>();
+                    lewd.corruption.SetBaseValue( lewd.corruption.GetBaseValue() + 1 );
+                }
+
+                if ( GUI.Button( new( 135, 390, 30, 20 ), "-" ) )
+                {
+                    // TODO: Decrease corruption
+                    PlayerLewd lewd = Player.instance?.GetComponent<PlayerLewd>();
+                    lewd.corruption.SetBaseValue( lewd.corruption.GetBaseValue() - 1 );
                 }
             }
         }
@@ -232,6 +256,10 @@ namespace FemboySurvivalCheats
             CorruptionManager corruptionManager = Player.instance?.GetComponent<CorruptionManager>();
             if ( corruptionManager?.IsActive() == true )
                 Traverse.Create( corruptionManager ).Method( "EndEvent" ).GetValue();
+
+            ToppingManager toppingManager = Player.instance?.GetComponent<ToppingManager>();
+            if ( toppingManager?.IsActive() == true )
+                Traverse.Create( toppingManager ).Method( "EndTop" ).GetValue();
         }
 
         /// <summary>
@@ -834,6 +862,32 @@ namespace FemboySurvivalCheats
             if ( Plugin.alwaysCanMasturbate )
             {
                 __result = true;
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    [HarmonyPatch( typeof( AbilityHolder ), "Update" )]
+    class SpellSlotUpdateCooldownPatch
+    {
+        static bool Prefix( ref float ___seductionCooldown, ref float[] ___cooldowns, ref int ___currentMana )
+        {
+            if ( Plugin.infiniteMana )
+            {
+                ___currentMana = int.MaxValue;
+            }
+
+            if ( Plugin.disableSpellCooldowns )
+            {
+                ___seductionCooldown = 0f;
+
+                for ( int i = 0; i < ___cooldowns.Length; i++ )
+                {
+                    ___cooldowns[ i ] = -1f;
+                }
+
                 return false;
             }
 
