@@ -23,6 +23,8 @@ namespace FemboySurvivalCheats
 
         public static bool infiniteMana = false;
 
+        public static bool noPleasure = false;
+
 #pragma warning disable IDE0051 // Private methods not accessed (it's a Unity thing)
         /// <summary>
         /// Called once loaded
@@ -52,12 +54,22 @@ namespace FemboySurvivalCheats
             // }
         }
 
+        private void OnDisable()
+        {
+            Logger.LogError( "Femboy Survival Cheats disabled." );
+        }
+
+        private void OnEnable()
+        {
+            Logger.LogInfo( "Femboy Survival Cheats enabled." );
+        }
+
         /// <summary>
         /// Called once per frame
         /// </summary>
         private void Update()
         {
-            if ( Input.GetKeyDown( KeyCode.O ) )
+            /* if ( Input.GetKeyDown( KeyCode.O ) )
             {
                 playerIntangible = !playerIntangible;
             }
@@ -115,7 +127,8 @@ namespace FemboySurvivalCheats
             if ( Input.GetKeyDown( KeyCode.Semicolon ) )
             {
                 this.AddGold( 1000 );
-            }
+            } */ // TODO: Redo these with BepInEx UnityInput instead, because otherwise it errors because the dev uses the new Input System
+                 // I would have done so already, but for some reason BepInEx's UnityInput isn't showing up and I can't figure out how to use it
 
             int obstacleLayer = 1024;
             int converted = ( int ) System.Math.Log( obstacleLayer, 2 );
@@ -131,6 +144,17 @@ namespace FemboySurvivalCheats
                     Physics2D.IgnoreLayerCollision( Player.instance.gameObject.layer, converted, false );
                 }
             }
+
+            if ( noPleasure )
+            {
+                PlayerLewd lewd = Player.instance?.GetComponent<PlayerLewd>();
+                Traverse<float> pleasure = Traverse.Create( lewd ).Field<float>( "pleasure" );
+                pleasure.Value = 0f;
+                Traverse<float> arousal = Traverse.Create( lewd ).Field<float>( "arousal" );
+                arousal.Value = 0f;
+
+                Logger.LogInfo( $"Pleasure reset to {pleasure.Value}, arousal reset to {arousal.Value}" );
+            }
         }
 
         /// <summary>
@@ -141,7 +165,7 @@ namespace FemboySurvivalCheats
         {
             if ( menuOpen )
             {
-                GUI.Box( new Rect( 10, 10, 170, 385 ), "Cheats" );
+                GUI.Box( new Rect( 10, 10, 170, 425 ), "Cheats" );
 
                 GUI.Label( new( 20, 25, 170, 20 ), "Toggle menu with F1" );
 
@@ -159,44 +183,46 @@ namespace FemboySurvivalCheats
 
                 infiniteMana = GUI.Toggle( new( 20, 160, 150, 20 ), infiniteMana, "Infinite mana" );
 
-                if ( GUI.Button( new( 20, 190, 150, 20 ), "Infinite Wave Time" ) )
+                noPleasure = GUI.Toggle( new( 20, 180, 150, 20 ), noPleasure, "No cumming" );
+
+                if ( GUI.Button( new( 20, 210, 150, 20 ), "Infinite Wave Time" ) )
                 {
                     this.MaxWaveCountdown();
                 }
 
-                if ( GUI.Button( new( 20, 215, 150, 20 ), "Kill all enemies" ) )
+                if ( GUI.Button( new( 20, 235, 150, 20 ), "Kill all enemies" ) )
                 {
                     this.KillAllEnemies();
                 }
 
-                if ( GUI.Button( new( 20, 240, 150, 20 ), "Max health" ) )
+                if ( GUI.Button( new( 20, 260, 150, 20 ), "Max health" ) )
                 {
                     this.MaxPlayerHealth();
                 }
 
-                if ( GUI.Button( new( 20, 265, 150, 20 ), "Level Up!" ) )
+                if ( GUI.Button( new( 20, 285, 150, 20 ), "Level Up!" ) )
                 {
                     this.LevelUpNormal();
                 }
 
-                if ( GUI.Button( new( 20, 290, 150, 20 ), "Slut Level Up!" ) )
+                if ( GUI.Button( new( 20, 310, 150, 20 ), "Slut Level Up!" ) )
                 {
                     this.LevelUpSex();
                 }
 
-                if ( GUI.Button( new( 20, 315, 150, 20 ), "Remove status effects" ) )
+                if ( GUI.Button( new( 20, 335, 150, 20 ), "Remove status effects" ) )
                 {
                     this.RemoveAllStatusEffects();
                 }
 
-                if ( GUI.Button( new( 20, 340, 150, 20 ), "End current event" ) )
+                if ( GUI.Button( new( 20, 360, 150, 20 ), "End current event" ) )
                 {
                     this.EndEvents();
                 }
 
-                string goldAmount = GUI.TextField( new( 20, 365, 65, 20 ), "1000", 6 );
+                string goldAmount = GUI.TextField( new( 20, 385, 65, 20 ), "1000", 6 );
 
-                if ( GUI.Button( new( 90, 365, 80, 20 ), "Add gold" ) )
+                if ( GUI.Button( new( 90, 385, 80, 20 ), "Add gold" ) )
                 {
                     if ( int.TryParse( goldAmount, out int goldToAdd ) )
                     {
@@ -208,20 +234,20 @@ namespace FemboySurvivalCheats
                     }
                 }
 
-                GUI.Label( new( 20, 390, 75, 20 ), "Corruption:" );
+                GUI.Label( new( 20, 410, 80, 20 ), "Corruption:" );
 
-                if ( GUI.Button( new( 100, 390, 30, 20 ), "+" ) )
+                if ( GUI.Button( new( 105, 410, 30, 20 ), "+" ) )
                 {
-                    // TODO: Increase corruption
                     PlayerLewd lewd = Player.instance?.GetComponent<PlayerLewd>();
                     lewd.corruption.SetBaseValue( lewd.corruption.GetBaseValue() + 1 );
+                    Logger.LogInfo( $"Increased corruption: {lewd.corruption.GetBaseValue()}" );
                 }
 
-                if ( GUI.Button( new( 135, 390, 30, 20 ), "-" ) )
+                if ( GUI.Button( new( 140, 410, 30, 20 ), "-" ) )
                 {
-                    // TODO: Decrease corruption
                     PlayerLewd lewd = Player.instance?.GetComponent<PlayerLewd>();
                     lewd.corruption.SetBaseValue( lewd.corruption.GetBaseValue() - 1 );
+                    Logger.LogInfo( $"Decreased corruption: {lewd.corruption.GetBaseValue()}" );
                 }
             }
         }
